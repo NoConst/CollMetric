@@ -248,12 +248,16 @@ class CML(object):
         # have two separate learning rates. The first one for user/item embedding is un-normalized.
         # The second one for feature projector NN is normalized by the number of items.
         gds = []
+
+        # fix feature_embeddings and update user_embedding and item_embedding
         gds.append(tf.train
-                   .AdagradOptimizer(self.master_learning_rate)
+                   .AdamOptimizer(self.master_learning_rate)
                    .minimize(self.loss, var_list=[self.user_embeddings, self.item_embeddings]))
+
+        # both update feature_embedding and item_embedding, Coordinate Ascent
         if self.feature_projection is not None:
             gds.append(tf.train
-                       .AdagradOptimizer(self.master_learning_rate)
+                       .AdamOptimizer(self.master_learning_rate)
                        .minimize(self.feature_loss / self.n_items))
 
         with tf.control_dependencies(gds):
@@ -343,8 +347,8 @@ if __name__ == '__main__':
                 margin=1.9,
                 # clip the embedding so that their norm <= clip_norm
                 clip_norm=1,
-                # learning rate for AdaGrad
-                master_learning_rate=0.1,
+                # learning rate for Adam
+                master_learning_rate=0.01,
 
                 # whether to enable rank weight. If True, the loss will be scaled by the estimated
                 # log-rank of the positive items. If False, no weight will be applied.
@@ -377,7 +381,7 @@ if __name__ == '__main__':
                 embed_dim=EMBED_DIM,
                 margin=2.0,
                 clip_norm=1.1,
-                master_learning_rate=0.1,
+                master_learning_rate=0.001,
                 # the size of the hidden layer in the feature projector NN
                 hidden_layer_dim=512,
                 # dropout rate between hidden layer and output layer in the feature projector NN
