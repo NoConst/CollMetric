@@ -7,38 +7,42 @@ from tqdm import tqdm
 
 def citeulike(tag_occurence_thres=10):
     user_dict = defaultdict(set)
+
+    # read user-item interactions
     for u, item_list in enumerate(open("citeulike-t/users.dat").readlines()):
         items = item_list.strip().split(" ")
-        # ignore the first element in each line, which is the number of items the user liked. 
+        # ignore the first element in each line, which is the number of items the user liked.
         for item in items[1:]:
             user_dict[u].add(int(item))
 
     n_users = len(user_dict)
     n_items = max([item for items in user_dict.values() for item in items]) + 1
 
+    # store in the sparse matrix, great!!!
     user_item_matrix = dok_matrix((n_users, n_items), dtype=np.int32)
     for u, item_list in enumerate(open("citeulike-t/users.dat").readlines()):
         items = item_list.strip().split(" ")
-        # ignore the first element in each line, which is the number of items the user liked. 
+        # ignore the first element in each line, which is the number of items the user liked.
         for item in items[1:]:
             user_item_matrix[u, int(item)] = 1
 
+    # each line is: tag no. item1 item2 item3 ... ... (these item has this tag)
+    # only use tag which has at least tag_occurence_thres items
     n_features = 0
     for l in open("citeulike-t/tag-item.dat").readlines():
         items = l.strip().split(" ")
-        if len(items) >= tag_occurence_thres:
+        if int(items[0]) >= tag_occurence_thres:
             n_features += 1
     print("{} features over tag_occurence_thres ({})".format(n_features, tag_occurence_thres))
     features = dok_matrix((n_items, n_features), dtype=np.int32)
     feature_index = 0
     for l in open("citeulike-t/tag-item.dat").readlines():
         items = l.strip().split(" ")
-        if len(items) >= tag_occurence_thres:
-            features[[int(i) for i in items], feature_index] = 1
+        if int(items[0]) >= tag_occurence_thres:
+            features[[int(i) for i in items[1:]], feature_index] = 1  # reverse
             feature_index += 1
 
     return user_item_matrix, features
-
 
 def split_data(user_item_matrix, split_ratio=(3, 1, 1), seed=1):
     # set the seed to have deterministic results
