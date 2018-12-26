@@ -106,9 +106,9 @@ class CML(object):
         self.cov_loss_weight = cov_loss_weight
 
 
-        self.user_positive_items_pairs = tf.placeholder(tf.int32, [None, 2])
-        self.negative_samples = tf.placeholder(tf.int32, [None, None])
-        self.score_user_ids = tf.placeholder(tf.int32, [None])
+        self.user_positive_items_pairs = tf.placeholder(tf.int32, [None, 2], name='user_pos_items')
+        self.negative_samples = tf.placeholder(tf.int32, [None, None], name='neg_items')
+        self.score_user_ids = tf.placeholder(tf.int32, [None], name='eval_user_ids')
 
 
         self.user_embeddings
